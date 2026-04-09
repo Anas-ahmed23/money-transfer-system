@@ -1,0 +1,101 @@
+import { TransferForm } from '@/components/transfer/TransferForm';
+import { Account } from '@/types';
+
+async function getAccounts(): Promise<Account[]> {
+  try {
+    const res = await fetch('http://localhost:4000/api/accounts', {
+      cache: 'no-store',
+    });
+
+    if (!res.ok) return [];
+
+    const json = await res.json();
+    return (json.data as Account[]) ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export default async function TransferPage() {
+  const accounts = await getAccounts();
+
+  return (
+    <main className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b border-border bg-card sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div
+              className="flex h-9 w-9 items-center justify-center rounded-lg font-bold text-sm"
+              style={{
+                background: 'linear-gradient(135deg, #c9a84c, #f0c040)',
+                color: '#0a0f1e',
+              }}
+            >
+              ت
+            </div>
+            <div>
+              <h1 className="font-bold text-foreground text-lg leading-none">
+                نظام التحويلات
+              </h1>
+              <p className="text-xs text-muted-foreground mt-0.5">Money Transfer System</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span
+              className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium"
+              style={{
+                border: '1px solid #c9a84c',
+                color: '#c9a84c',
+                background: 'rgba(201,168,76,0.08)',
+              }}
+            >
+              <span
+                className="h-1.5 w-1.5 rounded-full inline-block animate-pulse"
+                style={{ background: '#c9a84c' }}
+              />
+              متصل
+            </span>
+          </div>
+        </div>
+      </header>
+
+      {/* Page Content */}
+      <div className="max-w-4xl mx-auto px-4 py-10">
+        <div className="max-w-xl mx-auto">
+          {/* Page Title */}
+          <div className="mb-8 text-center">
+            <h2 className="text-3xl font-extrabold text-foreground mb-2">تحويل الأموال</h2>
+            <p className="text-muted-foreground">حوّل الأموال بين الحسابات بأمان وسرعة</p>
+          </div>
+
+          {/* No Accounts State */}
+          {accounts.length === 0 ? (
+            <div
+              className="text-center py-12 rounded-xl border"
+              style={{ background: 'hsl(224 44% 9%)', borderColor: 'hsl(221 42% 17%)' }}
+            >
+              <p className="text-muted-foreground font-medium">
+                تعذر تحميل الحسابات. تأكد من تشغيل الخادم الخلفي.
+              </p>
+              <p className="text-sm text-muted-foreground mt-1 font-mono">
+                http://localhost:4000
+              </p>
+            </div>
+          ) : (
+            <TransferForm accounts={accounts} />
+          )}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="border-t border-border mt-16">
+        <div className="max-w-4xl mx-auto px-4 py-4 text-center">
+          <p className="text-xs text-muted-foreground">
+            © 2026 نظام تحويل الأموال · جميع الحقوق محفوظة
+          </p>
+        </div>
+      </footer>
+    </main>
+  );
+}
