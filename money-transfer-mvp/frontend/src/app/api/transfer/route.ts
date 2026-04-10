@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
-import { Decimal } from '@prisma/client/runtime/library';
 
 const COMMISSION_RATE = 0.02;
 
@@ -77,10 +76,10 @@ export async function POST(req: NextRequest) {
         data: {
           fromAccountId,
           toAccountId,
-          amount: new Decimal(amount),
+          amount,
           currency,
-          commission: new Decimal(commission),
-          totalAmount: new Decimal(totalAmount),
+          commission,
+          totalAmount,
           status: 'COMPLETED',
         },
         include: { fromAccount: true, toAccount: true },
