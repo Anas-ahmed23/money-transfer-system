@@ -1,16 +1,20 @@
 import { TransferForm } from '@/components/transfer/TransferForm';
 import { Account } from '@/types';
+import { prisma } from '@/lib/prisma';
 
 async function getAccounts(): Promise<Account[]> {
   try {
-    const res = await fetch('http://localhost:4000/api/accounts', {
-      cache: 'no-store',
+    const accounts = await prisma.account.findMany({
+      orderBy: { holderName: 'asc' },
     });
-
-    if (!res.ok) return [];
-
-    const json = await res.json();
-    return (json.data as Account[]) ?? [];
+    return accounts.map((a) => ({
+      id: a.id,
+      accountNumber: a.accountNumber,
+      holderName: a.holderName,
+      balance: a.balance.toNumber(),
+      currency: a.currency as Account['currency'],
+      createdAt: a.createdAt.toISOString(),
+    }));
   } catch {
     return [];
   }
@@ -76,10 +80,7 @@ export default async function TransferPage() {
               style={{ background: 'hsl(224 44% 9%)', borderColor: 'hsl(221 42% 17%)' }}
             >
               <p className="text-muted-foreground font-medium">
-                تعذر تحميل الحسابات. تأكد من تشغيل الخادم الخلفي.
-              </p>
-              <p className="text-sm text-muted-foreground mt-1 font-mono">
-                http://localhost:4000
+                تعذر تحميل الحسابات. يرجى المحاولة مرة أخرى لاحقاً.
               </p>
             </div>
           ) : (
