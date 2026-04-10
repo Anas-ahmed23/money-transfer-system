@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Currency {
+  SAR
+  USD
+  EUR
+  GBP
+  AED
+}
+
+enum TransferStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+model Account {
+  id            String    @id @default(cuid())
+  accountNumber String    @unique
+  holderName    String
+  balance       Decimal   @db.Decimal(18, 2)
+  currency      Currency  @default(SAR)
+  createdAt     DateTime  @default(now())
+
+  transfersSent     Transfer[] @relation("FromAccount")
+  transfersReceived Transfer[] @relation("ToAccount")
+}
+
+model Transfer {
+  id            String         @id @default(cuid())
+  fromAccountId String
+  toAccountId   String
+  amount        Decimal        @db.Decimal(18, 2)
+  currency      Currency
+  commission    Decimal        @db.Decimal(18, 2)
+  totalAmount   Decimal        @db.Decimal(18, 2)
+  status        TransferStatus @default(PENDING)
+  createdAt     DateTime       @default(now())
+
+  fromAccount Account @relation("FromAccount", fields: [fromAccountId], references: [id])
+  toAccount   Account @relation("ToAccount", fields: [toAccountId], references: [id])
+}
