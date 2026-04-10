@@ -3,7 +3,14 @@
     "allow": [
       "Bash(mkdir -p /c/Users/User/OneDrive/Documents/money-transfer-system/money-transfer-mvp/docs/superpowers/plans)",
       "Bash(mkdir -p /c/Users/User/OneDrive/Documents/money-transfer-system/money-transfer-mvp/docs/superpowers/specs)",
-      "Bash(bash:*)"
+      "Bash(bash:*)",
+      "Bash(npx tsc:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npm run:*)",
+      "Bash(curl -s http://localhost:3000/api/accounts/fake-id-test)",
+      "Bash(curl -s http://localhost:3000/api/accounts/fake-id-test/transactions)",
+      "Bash(Test-Path:*)"
     ]
   }
 }
