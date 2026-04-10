@@ -1,87 +1,104 @@
 # Money Transfer MVP — Setup Guide
 
+## Architecture Overview
+
+This project is a **Next.js full-stack application** deployed on Vercel.
+
+| Layer | Technology | Location |
+|---|---|---|
+| Frontend + API | Next.js 14 (App Router) | `money-transfer-mvp/frontend/` |
+| Database | PostgreSQL via Neon | Managed cloud (Neon dashboard) |
+| ORM | Prisma | `frontend/prisma/schema.prisma` |
+| Deployment | Vercel | Auto-deploy on push to `main` |
+
+> **Important:** The `money-transfer-mvp/backend/` folder is a local-only Express prototype. It is **not deployed** and has no effect on production. All live API logic lives inside `frontend/src/app/api/`.
+
+---
+
 ## Prerequisites
 
 - Node.js >= 18.x
-- PostgreSQL >= 14 running locally
 - npm >= 9.x
+- Access to the Neon database connection string (from the Vercel dashboard or Neon console)
+
+You do **not** need a local PostgreSQL installation. The database is hosted on Neon.
 
 ---
 
-## 1. Database Setup
+## Local Development Setup
 
-Create a PostgreSQL database:
+All development work happens inside the `frontend/` directory.
 
-```sql
-CREATE DATABASE money_transfer_db;
-```
-
----
-
-## 2. Backend Setup
-
-```bash
-cd money-transfer-mvp/backend
-
-# Install dependencies
-npm install
-
-# Configure environment
-cp .env.example .env
-# Edit .env — set your actual DATABASE_URL:
-# DATABASE_URL="postgresql://<user>:<password>@localhost:5432/money_transfer_db"
-
-# Generate Prisma client
-npx prisma generate
-
-# Run database migration
-npx prisma migrate dev --name init
-
-# Seed test data (5 Arabic accounts)
-npx ts-node prisma/seed.ts
-
-# Start development server on port 4000
-npm run dev
-```
-
-Verify backend is running:
-- Health check: http://localhost:4000/health → `{"status":"ok",...}`
-- Accounts list: http://localhost:4000/api/accounts
-
----
-
-## 3. Frontend Setup
+### 1. Install dependencies
 
 ```bash
 cd money-transfer-mvp/frontend
-
-# Install dependencies
 npm install
+```
 
-# Start development server on port 3000
+### 2. Configure environment variables
+
+Create a `.env.local` file in `money-transfer-mvp/frontend/`:
+
+```bash
+# money-transfer-mvp/frontend/.env.local
+DATABASE_URL="postgresql://<user>:<password>@<host>.neon.tech/<dbname>?sslmode=require"
+```
+
+Get the connection string from:
+- Vercel dashboard → Project → Settings → Environment Variables → `DATABASE_URL`
+- or directly from the Neon console → Connection Details
+
+> **Never commit `.env.local` to git.** It is already in `.gitignore`.
+
+### 3. Generate Prisma client
+
+```bash
+npx prisma generate
+```
+
+This must be run after `npm install` if the Prisma client is not already generated. On Vercel, this runs automatically as part of the build (`prisma generate && next build`).
+
+### 4. Start the development server
+
+```bash
 npm run dev
 ```
 
-Open in browser: http://localhost:3000  
-→ Automatically redirects to http://localhost:3000/transfer
+Open: [http://localhost:3000](http://localhost:3000)
+
+The app redirects to `/transfer` automatically.
 
 ---
 
-## 4. API Reference
+## Available Routes
+
+| Route | Description |
+|---|---|
+| `/transfer` | Transfer form — create transfers between accounts |
+| `/accounts` | Accounts overview — list all accounts with balances |
+| `/accounts/[id]` | Account statement — full transaction history for one account |
+
+---
+
+## Live API Endpoints
+
+All API routes are inside `frontend/src/app/api/` and deployed as Vercel serverless functions.
 
 | Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/health` | Health check |
-| GET | `/api/accounts` | List all accounts |
-| POST | `/api/transfer` | Create a transfer |
-| GET | `/api/transfer/:id` | Get transfer by ID |
+|---|---|---|
+| `GET` | `/api/accounts` | List all accounts |
+| `GET` | `/api/accounts/[id]` | Get single account by ID |
+| `GET` | `/api/accounts/[id]/transactions` | Get all transfers for an account |
+| `POST` | `/api/transfer` | Create a transfer |
+| `GET` | `/api/transfer/[id]` | Get a transfer by ID |
 
 ### POST /api/transfer — Request Body
 
 ```json
 {
-  "fromAccountId": "clxxx",
-  "toAccountId": "clyyy",
+  "fromAccountId": "cuid-here",
+  "toAccountId": "cuid-here",
   "amount": 1000,
   "currency": "SAR"
 }
@@ -93,7 +110,7 @@ Open in browser: http://localhost:3000
 {
   "success": true,
   "data": {
-    "id": "clxxx",
+    "id": "...",
     "fromAccountId": "...",
     "toAccountId": "...",
     "amount": 1000,
@@ -101,135 +118,203 @@ Open in browser: http://localhost:3000
     "totalAmount": 1020,
     "currency": "SAR",
     "status": "COMPLETED",
-    "createdAt": "2026-04-07T10:00:00.000Z",
-    "fromAccount": { "id": "...", "holderName": "...", "balance": 48980, ... },
-    "toAccount": { "id": "...", "holderName": "...", "balance": 51000, ... }
+    "createdAt": "2026-04-10T10:00:00.000Z",
+    "fromAccount": { "id": "...", "holderName": "...", "balance": 48980, "currency": "SAR", ... },
+    "toAccount":   { "id": "...", "holderName": "...", "balance": 51000, "currency": "SAR", ... }
   }
 }
 ```
 
-### Error Response
+### GET /api/accounts/[id]/transactions — Response
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "...",
+      "direction": "outgoing",
+      "fromAccount": { "id": "...", "accountNumber": "...", "holderName": "..." },
+      "toAccount":   { "id": "...", "accountNumber": "...", "holderName": "..." },
+      "amount": 1000,
+      "commission": 20,
+      "totalAmount": 1020,
+      "currency": "SAR",
+      "status": "COMPLETED",
+      "createdAt": "2026-04-10T10:00:00.000Z"
+    }
+  ]
+}
+```
+
+`direction` is `"outgoing"` when the queried account is the sender, `"incoming"` when it is the receiver.
+
+### Error Response Shape
 
 ```json
 {
   "success": false,
   "error": {
-    "code": "INSUFFICIENT_BALANCE",
-    "message": "الرصيد غير كافٍ. الرصيد المتاح: ..."
+    "message": "Arabic error message here"
   }
 }
 ```
 
-**Error codes:**
-
-| Code | HTTP | Description |
-|------|------|-------------|
-| `VALIDATION_ERROR` | 422 | Invalid request body |
-| `SAME_ACCOUNT` | 400 | From and To accounts are identical |
-| `ACCOUNT_NOT_FOUND` | 404 | Account ID doesn't exist |
-| `INSUFFICIENT_BALANCE` | 400 | Source account has insufficient funds |
-| `TRANSFER_NOT_FOUND` | 404 | Transfer ID doesn't exist |
-| `INTERNAL_SERVER_ERROR` | 500 | Unexpected server error |
-
 ---
 
-## 5. Business Rules
+## Business Rules
 
 | Rule | Value |
-|------|-------|
-| Commission Rate | 2% of transfer amount |
-| Total Deducted from Source | `amount + commission` |
-| Amount Credited to Target | `amount` only (not commission) |
-| Same-account Transfer | Not allowed → `SAME_ACCOUNT` error |
-| Minimum Amount | Must be > 0 |
-| Insufficient Balance | Rejected → `INSUFFICIENT_BALANCE` error |
-| Transfer Status | Always set to `COMPLETED` on success |
+|---|---|
+| Commission rate | 2% of transfer amount |
+| Deducted from source | `amount + commission` |
+| Credited to destination | `amount` only |
+| Same-account transfer | Rejected |
+| Transfer status | Always `COMPLETED` on success |
+| Minimum amount | Must be > 0 |
+| Maximum amount | 10,000,000 per transfer |
 
 ---
 
-## 6. Test Accounts (after seed)
+## Database
 
-| Holder | Account Number | Balance |
-|--------|---------------|---------|
-| أحمد محمد العمري | SA01-1234-5678 | 50,000.00 SAR |
-| فاطمة علي الزهراني | SA02-2345-6789 | 125,000.50 SAR |
-| خالد عبدالله القحطاني | SA03-3456-7890 | 8,750.25 SAR |
-| نورة سعد الدوسري | SA04-4567-8901 | 200,000.00 SAR |
-| عمر يوسف الغامدي | SA05-5678-9012 | 35,500.75 SAR |
+Schema lives at: `money-transfer-mvp/frontend/prisma/schema.prisma`
+
+**Do not delete or move this file.** Prisma requires it to be at this path for client generation on Vercel.
+
+### Making schema changes
+
+If a schema change is ever required:
+
+1. Edit `frontend/prisma/schema.prisma`
+2. Run `npx prisma db push` with the Neon `DATABASE_URL` set locally
+3. Run `npx prisma generate`
+4. Verify `npm run build` passes with zero TypeScript errors
+5. Test locally before pushing to `main`
 
 ---
 
-## 7. Project Structure
+## Project Structure (frontend — live app)
 
 ```
-money-transfer-mvp/
-├── backend/
-│   ├── prisma/
-│   │   ├── schema.prisma        # Database schema
-│   │   └── seed.ts              # Test data seeder
-│   ├── src/
-│   │   ├── config/
-│   │   │   └── database.ts      # Prisma client singleton
-│   │   ├── controllers/
-│   │   │   ├── account.controller.ts
-│   │   │   └── transfer.controller.ts
-│   │   ├── middleware/
-│   │   │   └── error.middleware.ts  # AppError + global handler
-│   │   ├── routes/
-│   │   │   ├── account.routes.ts
-│   │   │   ├── transfer.routes.ts
-│   │   │   └── index.ts
-│   │   ├── services/
-│   │   │   ├── account.service.ts
-│   │   │   └── transfer.service.ts  # Business logic
-│   │   ├── types/
-│   │   │   └── index.ts         # DTOs and shared types
-│   │   ├── validation/
-│   │   │   └── transfer.validation.ts  # Zod schemas
-│   │   ├── app.ts               # Express app factory
-│   │   └── server.ts            # HTTP server entry
-│   ├── .env.example
-│   ├── package.json
-│   └── tsconfig.json
-│
-├── frontend/
-│   ├── src/
-│   │   ├── app/
-│   │   │   ├── layout.tsx       # Root layout (RTL, Arabic font)
-│   │   │   ├── page.tsx         # Redirect to /transfer
-│   │   │   ├── globals.css      # Tailwind + CSS variables
-│   │   │   └── transfer/
-│   │   │       └── page.tsx     # Transfer page (Server Component)
-│   │   ├── components/
-│   │   │   ├── transfer/
-│   │   │   │   ├── AccountSelect.tsx
-│   │   │   │   ├── SummaryCard.tsx
-│   │   │   │   └── TransferForm.tsx
-│   │   │   └── ui/              # shadcn/ui components
-│   │   ├── lib/
-│   │   │   ├── api.ts           # Typed fetch client
-│   │   │   └── utils.ts         # cn(), formatCurrency(), etc.
-│   │   └── types/
-│   │       └── index.ts         # Frontend types
-│   ├── components.json
-│   ├── next.config.ts
-│   ├── package.json
-│   ├── tailwind.config.ts
-│   └── tsconfig.json
-│
-└── docs/
-    ├── SETUP.md                 # This file
-    └── superpowers/
-        ├── plans/               # Implementation plans
-        └── specs/               # Design specs
+money-transfer-mvp/frontend/
+├── prisma/
+│   └── schema.prisma            # Prisma schema — DO NOT DELETE
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx           # Root layout (RTL, Arabic fonts)
+│   │   ├── page.tsx             # Redirects to /transfer
+│   │   ├── globals.css          # Tailwind base + CSS variables
+│   │   ├── transfer/
+│   │   │   └── page.tsx         # Transfer form (server component)
+│   │   ├── accounts/
+│   │   │   ├── page.tsx         # Accounts overview (server component)
+│   │   │   └── [id]/
+│   │   │       └── page.tsx     # Account statement (server component)
+│   │   └── api/
+│   │       ├── accounts/
+│   │       │   ├── route.ts     # GET /api/accounts
+│   │       │   └── [id]/
+│   │       │       ├── route.ts                  # GET /api/accounts/[id]
+│   │       │       └── transactions/
+│   │       │           └── route.ts              # GET /api/accounts/[id]/transactions
+│   │       └── transfer/
+│   │           ├── route.ts     # POST /api/transfer
+│   │           └── [id]/
+│   │               └── route.ts # GET /api/transfer/[id]
+│   ├── components/
+│   │   ├── accounts/
+│   │   │   ├── AccountsTable.tsx
+│   │   │   ├── AccountSummaryCard.tsx
+│   │   │   └── AccountTransactionsTable.tsx
+│   │   ├── transfer/
+│   │   │   ├── TransferForm.tsx
+│   │   │   ├── AccountSelect.tsx
+│   │   │   └── SummaryCard.tsx
+│   │   └── ui/                  # shadcn/ui components
+│   ├── lib/
+│   │   ├── prisma.ts            # Prisma client singleton
+│   │   ├── api.ts               # Typed fetch client
+│   │   └── utils.ts             # formatCurrency, calculateCommission, cn()
+│   └── types/
+│       └── index.ts             # Shared TypeScript types
+├── next.config.ts
+├── tailwind.config.ts
+├── tsconfig.json
+└── package.json
 ```
 
 ---
 
-## 8. Supported Currencies
+## Deployment
 
-| Code | Name |
-|------|------|
+Deployment is fully automatic via Vercel.
+
+- Every push to `main` triggers a production deploy
+- Vercel runs: `prisma generate && next build`
+- Environment variables (including `DATABASE_URL`) are managed in the Vercel dashboard — do not hardcode them
+
+**Before pushing to `main`:**
+
+1. Run `npm run build` locally — must pass with zero errors
+2. Test the transfer flow end-to-end
+3. Verify no TypeScript errors: `npx tsc --noEmit`
+
+---
+
+## Common Errors and Fixes
+
+### `Environment variable not found: DATABASE_URL`
+
+**Cause:** `.env.local` is missing or `DATABASE_URL` is not set.
+
+**Fix:** Create `frontend/.env.local` with the correct Neon connection string. See step 2 of Local Development Setup above.
+
+---
+
+### `PrismaClientInitializationError` during `npm run build`
+
+**Cause:** `DATABASE_URL` is not set in the environment where the build runs.
+
+**Fix locally:** Set `DATABASE_URL` in `.env.local` before running `npm run build`.
+
+**On Vercel:** Ensure `DATABASE_URL` is set in the Vercel dashboard → Environment Variables. Vercel injects it automatically during build and runtime.
+
+---
+
+### `PrismaClientKnownRequestError` / `P1001: Can't reach database server`
+
+**Cause:** The Neon database is unreachable (network issue, incorrect URL, or Neon project paused).
+
+**Fix:** Verify the connection string is correct. Check the Neon dashboard to confirm the project is active.
+
+---
+
+### `Cannot find module '@prisma/client'`
+
+**Cause:** Prisma client was not generated after `npm install`.
+
+**Fix:**
+
+```bash
+cd money-transfer-mvp/frontend
+npx prisma generate
+```
+
+---
+
+### TypeScript errors on `account.balance.toNumber()`
+
+**Cause:** Prisma returns `Decimal` type for `balance`. It must be converted to `number` before passing to components or returning from API routes.
+
+**Fix:** Always call `.toNumber()` when serializing Prisma `Decimal` fields. This is already done consistently in all existing API routes and server components.
+
+---
+
+## Supported Currencies
+
+| Code | Arabic Name |
+|---|---|
 | SAR | ريال سعودي |
 | USD | دولار أمريكي |
 | EUR | يورو |
