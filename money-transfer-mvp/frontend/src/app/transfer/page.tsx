@@ -2,31 +2,29 @@ import { TransferForm } from '@/components/transfer/TransferForm';
 import { Account } from '@/types';
 import { prisma } from '@/lib/prisma';
 
-async function getAccounts(): Promise<{ accounts: Account[]; error: string | null }> {
+export const dynamic = 'force-dynamic';
+
+async function getAccounts(): Promise<Account[]> {
   try {
     const accounts = await prisma.account.findMany({
       orderBy: { holderName: 'asc' },
     });
-    return {
-      accounts: accounts.map((a) => ({
-        id: a.id,
-        accountNumber: a.accountNumber,
-        holderName: a.holderName,
-        balance: a.balance.toNumber(),
-        currency: a.currency as Account['currency'],
-        createdAt: a.createdAt.toISOString(),
-      })),
-      error: null,
-    };
+    return accounts.map((a) => ({
+      id: a.id,
+      accountNumber: a.accountNumber,
+      holderName: a.holderName,
+      balance: a.balance.toNumber(),
+      currency: a.currency as Account['currency'],
+      createdAt: a.createdAt.toISOString(),
+    }));
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error('DB ERROR:', message);
-    return { accounts: [], error: message };
+    console.error('DB ERROR:', err);
+    return [];
   }
 }
 
 export default async function TransferPage() {
-  const { accounts, error } = await getAccounts();
+  const accounts = await getAccounts();
 
   return (
     <main className="min-h-screen bg-background">
@@ -87,11 +85,6 @@ export default async function TransferPage() {
               <p className="text-muted-foreground font-medium">
                 تعذر تحميل الحسابات. يرجى المحاولة مرة أخرى لاحقاً.
               </p>
-              {error && (
-                <p className="text-xs text-red-400 mt-3 font-mono dir-ltr break-all px-4" dir="ltr">
-                  DEBUG: {error}
-                </p>
-              )}
             </div>
           ) : (
             <TransferForm accounts={accounts} />
