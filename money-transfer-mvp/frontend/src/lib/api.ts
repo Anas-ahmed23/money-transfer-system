@@ -1,4 +1,4 @@
-import { Account, ApiResponse, CreateTransferPayload, Transfer } from '@/types';
+import { Account, AccountTransaction, ApiResponse, CreateTransferPayload, Transfer } from '@/types';
 
 const BASE_URL = '/api';
 
@@ -25,6 +25,12 @@ export const api = {
   accounts: {
     list(): Promise<ApiResponse<Account[]>> {
       return request<Account[]>('/accounts');
+    },
+    getById(id: string): Promise<ApiResponse<Account>> {
+      return request<Account>(`/accounts/${id}`);
+    },
+    getTransactions(id: string): Promise<ApiResponse<AccountTransaction[]>> {
+      return request<AccountTransaction[]>(`/accounts/${id}/transactions`);
     },
   },
   transfers: {

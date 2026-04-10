@@ -68,3 +68,16 @@ export const CURRENCY_LABELS: Record<Currency, string> = {
 };
 
 export const COMMISSION_RATE = 0.02;
+
+export interface AccountTransaction {
+  id: string;
+  direction: 'outgoing' | 'incoming';
+  fromAccount: { id: string; accountNumber: string; holderName: string };
+  toAccount:   { id: string; accountNumber: string; holderName: string };
+  amount: number;
+  commission: number;
+  totalAmount: number;
+  currency: Currency;
+  status: TransferStatus;
+  createdAt: string;
+}
