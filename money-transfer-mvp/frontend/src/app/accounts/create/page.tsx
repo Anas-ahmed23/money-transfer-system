@@ -12,25 +12,6 @@ const CURRENCIES = [
   { value: 'AED', label: 'درهم إماراتي (AED)' },
 ];
 
-const INPUT_STYLE: React.CSSProperties = {
-  background: 'hsl(224 44% 9%)',
-  border: '1px solid hsl(221 42% 17%)',
-  color: 'white',
-  borderRadius: '0.5rem',
-  padding: '0.625rem 0.875rem',
-  width: '100%',
-  fontSize: '0.875rem',
-  outline: 'none',
-};
-
-const LABEL_STYLE: React.CSSProperties = {
-  display: 'block',
-  fontSize: '0.8125rem',
-  fontWeight: 600,
-  color: 'rgba(255,255,255,0.75)',
-  marginBottom: '0.375rem',
-};
-
 export default function CreateAccountPage() {
   const router = useRouter();
 
@@ -82,48 +63,7 @@ export default function CreateAccountPage() {
 
   return (
     <main className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div
-              className="flex h-9 w-9 items-center justify-center rounded-lg font-bold text-sm"
-              style={{
-                background: 'linear-gradient(135deg, #c9a84c, #f0c040)',
-                color: '#0a0f1e',
-              }}
-            >
-              ت
-            </div>
-            <div>
-              <h1 className="font-bold text-foreground text-lg leading-none">
-                نظام التحويلات
-              </h1>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Money Transfer System
-              </p>
-            </div>
-          </div>
-          <span
-            className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium"
-            style={{
-              border: '1px solid #c9a84c',
-              color: '#c9a84c',
-              background: 'rgba(201,168,76,0.08)',
-            }}
-          >
-            <span
-              className="h-1.5 w-1.5 rounded-full inline-block animate-pulse"
-              style={{ background: '#c9a84c' }}
-            />
-            متصل
-          </span>
-        </div>
-      </header>
-
-      {/* Content */}
       <div className="max-w-5xl mx-auto px-4 py-10">
-        {/* Back link */}
         <Link
           href="/accounts"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
@@ -133,26 +73,15 @@ export default function CreateAccountPage() {
 
         <div className="max-w-lg mx-auto">
           <div className="mb-8">
-            <h2 className="text-2xl font-extrabold text-foreground mb-1">
-              إنشاء حساب جديد
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              أدخل بيانات الحساب لإضافته إلى النظام
-            </p>
+            <h2 className="text-2xl font-extrabold text-foreground mb-1">إنشاء حساب جديد</h2>
+            <p className="text-sm text-muted-foreground">أدخل بيانات الحساب لإضافته إلى النظام</p>
           </div>
 
-          {/* Form Card */}
-          <div
-            className="rounded-xl border p-6 space-y-5"
-            style={{
-              background: 'hsl(224 44% 9%)',
-              borderColor: 'hsl(221 42% 17%)',
-            }}
-          >
+          <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Holder Name */}
               <div>
-                <label htmlFor="holderName" style={LABEL_STYLE}>
+                <label htmlFor="holderName" className="block text-sm font-semibold text-foreground mb-1.5">
                   اسم الحامل
                 </label>
                 <input
@@ -163,13 +92,13 @@ export default function CreateAccountPage() {
                   placeholder="مثال: أحمد محمد"
                   required
                   disabled={loading}
-                  style={INPUT_STYLE}
+                  className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-60"
                 />
               </div>
 
               {/* Account Number */}
               <div>
-                <label htmlFor="accountNumber" style={LABEL_STYLE}>
+                <label htmlFor="accountNumber" className="block text-sm font-semibold text-foreground mb-1.5">
                   رقم الحساب
                 </label>
                 <input
@@ -180,13 +109,14 @@ export default function CreateAccountPage() {
                   placeholder="مثال: ACC-001"
                   required
                   disabled={loading}
-                  style={{ ...INPUT_STYLE, direction: 'ltr', textAlign: 'right' }}
+                  dir="ltr"
+                  className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-60 text-right"
                 />
               </div>
 
               {/* Opening Balance */}
               <div>
-                <label htmlFor="balance" style={LABEL_STYLE}>
+                <label htmlFor="balance" className="block text-sm font-semibold text-foreground mb-1.5">
                   الرصيد الافتتاحي
                 </label>
                 <input
@@ -199,13 +129,14 @@ export default function CreateAccountPage() {
                   step="0.01"
                   required
                   disabled={loading}
-                  style={{ ...INPUT_STYLE, direction: 'ltr', textAlign: 'right' }}
+                  dir="ltr"
+                  className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-60 text-right"
                 />
               </div>
 
               {/* Currency */}
               <div>
-                <label htmlFor="currency" style={LABEL_STYLE}>
+                <label htmlFor="currency" className="block text-sm font-semibold text-foreground mb-1.5">
                   العملة
                 </label>
                 <select
@@ -213,7 +144,7 @@ export default function CreateAccountPage() {
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value)}
                   disabled={loading}
-                  style={INPUT_STYLE}
+                  className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-60"
                 >
                   {CURRENCIES.map((c) => (
                     <option key={c.value} value={c.value}>
@@ -225,14 +156,7 @@ export default function CreateAccountPage() {
 
               {/* Error */}
               {error && (
-                <div
-                  className="rounded-lg px-4 py-3 text-sm font-medium"
-                  style={{
-                    background: 'rgba(239,68,68,0.1)',
-                    border: '1px solid rgba(239,68,68,0.3)',
-                    color: '#f87171',
-                  }}
-                >
+                <div className="rounded-lg px-4 py-3 text-sm font-medium bg-destructive/10 border border-destructive/30 text-destructive">
                   {error}
                 </div>
               )}
@@ -241,11 +165,7 @@ export default function CreateAccountPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 rounded-lg text-sm font-bold transition-opacity disabled:opacity-60"
-                style={{
-                  background: 'linear-gradient(135deg, #c9a84c, #f0c040)',
-                  color: '#0a0f1e',
-                }}
+                className="w-full py-2.5 rounded-lg text-sm font-bold btn-gold"
               >
                 {loading ? 'جارٍ الإنشاء...' : 'إنشاء الحساب'}
               </button>
@@ -254,7 +174,6 @@ export default function CreateAccountPage() {
         </div>
       </div>
 
-      {/* Footer */}
       <footer className="border-t border-border mt-16">
         <div className="max-w-5xl mx-auto px-4 py-4 text-center">
           <p className="text-xs text-muted-foreground">
