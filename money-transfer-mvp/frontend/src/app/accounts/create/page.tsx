@@ -12,6 +12,25 @@ const CURRENCIES = [
   { value: 'AED', label: 'درهم إماراتي (AED)' },
 ];
 
+const INPUT_STYLE: React.CSSProperties = {
+  background: 'hsl(224 44% 9%)',
+  border: '1px solid hsl(221 42% 17%)',
+  color: 'white',
+  borderRadius: '0.5rem',
+  padding: '0.625rem 0.875rem',
+  width: '100%',
+  fontSize: '0.875rem',
+  outline: 'none',
+};
+
+const LABEL_STYLE: React.CSSProperties = {
+  display: 'block',
+  fontSize: '0.8125rem',
+  fontWeight: 600,
+  color: 'rgba(255,255,255,0.75)',
+  marginBottom: '0.375rem',
+};
+
 export default function CreateAccountPage() {
   const router = useRouter();
 
@@ -27,6 +46,13 @@ export default function CreateAccountPage() {
     setError(null);
     setLoading(true);
 
+    const parsedBalance = parseFloat(balance);
+    if (!balance || isNaN(parsedBalance)) {
+      setError('يرجى إدخال رصيد افتتاحي صحيح');
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch('/api/accounts', {
         method: 'POST',
@@ -34,14 +60,14 @@ export default function CreateAccountPage() {
         body: JSON.stringify({
           holderName,
           accountNumber,
-          balance: parseFloat(balance),
+          balance: parsedBalance,
           currency,
         }),
       });
 
       const json = await res.json();
 
-      if (!json.success) {
+      if (!res.ok || !json.success) {
         setError(json.error?.message ?? 'فشل في إنشاء الحساب');
         return;
       }
@@ -53,25 +79,6 @@ export default function CreateAccountPage() {
       setLoading(false);
     }
   }
-
-  const inputStyle: React.CSSProperties = {
-    background: 'hsl(224 44% 9%)',
-    border: '1px solid hsl(221 42% 17%)',
-    color: 'white',
-    borderRadius: '0.5rem',
-    padding: '0.625rem 0.875rem',
-    width: '100%',
-    fontSize: '0.875rem',
-    outline: 'none',
-  };
-
-  const labelStyle: React.CSSProperties = {
-    display: 'block',
-    fontSize: '0.8125rem',
-    fontWeight: 600,
-    color: 'rgba(255,255,255,0.75)',
-    marginBottom: '0.375rem',
-  };
 
   return (
     <main className="min-h-screen bg-background">
@@ -121,7 +128,7 @@ export default function CreateAccountPage() {
           href="/accounts"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
         >
-          → الحسابات
+          ← الحسابات
         </Link>
 
         <div className="max-w-lg mx-auto">
@@ -145,7 +152,7 @@ export default function CreateAccountPage() {
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Holder Name */}
               <div>
-                <label htmlFor="holderName" style={labelStyle}>
+                <label htmlFor="holderName" style={LABEL_STYLE}>
                   اسم الحامل
                 </label>
                 <input
@@ -156,13 +163,13 @@ export default function CreateAccountPage() {
                   placeholder="مثال: أحمد محمد"
                   required
                   disabled={loading}
-                  style={inputStyle}
+                  style={INPUT_STYLE}
                 />
               </div>
 
               {/* Account Number */}
               <div>
-                <label htmlFor="accountNumber" style={labelStyle}>
+                <label htmlFor="accountNumber" style={LABEL_STYLE}>
                   رقم الحساب
                 </label>
                 <input
@@ -173,13 +180,13 @@ export default function CreateAccountPage() {
                   placeholder="مثال: ACC-001"
                   required
                   disabled={loading}
-                  style={{ ...inputStyle, direction: 'ltr', textAlign: 'right' }}
+                  style={{ ...INPUT_STYLE, direction: 'ltr', textAlign: 'right' }}
                 />
               </div>
 
               {/* Opening Balance */}
               <div>
-                <label htmlFor="balance" style={labelStyle}>
+                <label htmlFor="balance" style={LABEL_STYLE}>
                   الرصيد الافتتاحي
                 </label>
                 <input
@@ -192,13 +199,13 @@ export default function CreateAccountPage() {
                   step="0.01"
                   required
                   disabled={loading}
-                  style={{ ...inputStyle, direction: 'ltr', textAlign: 'right' }}
+                  style={{ ...INPUT_STYLE, direction: 'ltr', textAlign: 'right' }}
                 />
               </div>
 
               {/* Currency */}
               <div>
-                <label htmlFor="currency" style={labelStyle}>
+                <label htmlFor="currency" style={LABEL_STYLE}>
                   العملة
                 </label>
                 <select
@@ -206,7 +213,7 @@ export default function CreateAccountPage() {
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value)}
                   disabled={loading}
-                  style={inputStyle}
+                  style={INPUT_STYLE}
                 >
                   {CURRENCIES.map((c) => (
                     <option key={c.value} value={c.value}>
