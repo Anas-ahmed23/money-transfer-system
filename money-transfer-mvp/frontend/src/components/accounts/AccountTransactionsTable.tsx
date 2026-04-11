@@ -186,15 +186,18 @@ export function AccountTransactionsTable({
                     {tx.toAccount.accountNumber}
                   </div>
                 </td>
-                <td className="px-4 py-3 tabular-nums font-medium text-foreground whitespace-nowrap">
-                  {formatCurrency(tx.amount, tx.currency as Currency)}
+                <td
+                  className="px-4 py-3 tabular-nums font-semibold whitespace-nowrap"
+                  style={{ color: tx.direction === 'outgoing' ? '#f87171' : '#4ade80' }}
+                >
+                  {tx.direction === 'outgoing' ? '−' : '+'}{formatCurrency(tx.amount, tx.currency as Currency)}
                 </td>
                 <td className="px-4 py-3 tabular-nums text-muted-foreground whitespace-nowrap">
                   {formatCurrency(tx.commission, tx.currency as Currency)}
                 </td>
                 <td
                   className="px-4 py-3 tabular-nums font-semibold whitespace-nowrap"
-                  style={{ color: '#c9a84c' }}
+                  style={{ color: tx.direction === 'outgoing' ? '#f87171' : '#4ade80' }}
                 >
                   {formatCurrency(tx.totalAmount, tx.currency as Currency)}
                 </td>
