@@ -58,7 +58,7 @@ export default function HomePage() {
           {/* Transfer */}
           <Link
             href="/transfer"
-            className="group flex flex-col gap-3 p-6 rounded-xl border transition-all hover:scale-[1.02]"
+            className="flex flex-col gap-3 p-6 rounded-xl border transition-all hover:scale-[1.02]"
             style={{
               background: 'hsl(224 44% 9%)',
               borderColor: 'hsl(221 42% 17%)',
@@ -85,14 +85,14 @@ export default function HomePage() {
               className="mt-auto text-xs font-semibold"
               style={{ color: '#c9a84c' }}
             >
-              الانتقال ←
+              الانتقال →
             </span>
           </Link>
 
           {/* Accounts */}
           <Link
             href="/accounts"
-            className="group flex flex-col gap-3 p-6 rounded-xl border transition-all hover:scale-[1.02]"
+            className="flex flex-col gap-3 p-6 rounded-xl border transition-all hover:scale-[1.02]"
             style={{
               background: 'hsl(224 44% 9%)',
               borderColor: 'hsl(221 42% 17%)',
@@ -119,14 +119,14 @@ export default function HomePage() {
               className="mt-auto text-xs font-semibold"
               style={{ color: '#c9a84c' }}
             >
-              الانتقال ←
+              الانتقال →
             </span>
           </Link>
 
           {/* Create Account */}
           <Link
             href="/accounts/create"
-            className="group flex flex-col gap-3 p-6 rounded-xl border transition-all hover:scale-[1.02]"
+            className="flex flex-col gap-3 p-6 rounded-xl border transition-all hover:scale-[1.02]"
             style={{
               background: 'hsl(224 44% 9%)',
               borderColor: 'hsl(221 42% 17%)',
@@ -153,7 +153,7 @@ export default function HomePage() {
               className="mt-auto text-xs font-semibold"
               style={{ color: '#c9a84c' }}
             >
-              الانتقال ←
+              الانتقال →
             </span>
           </Link>
         </div>
