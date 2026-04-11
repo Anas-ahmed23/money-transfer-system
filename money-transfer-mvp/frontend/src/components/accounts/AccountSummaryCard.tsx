@@ -10,38 +10,18 @@ interface AccountSummaryCardProps {
 
 export function AccountSummaryCard({ account }: AccountSummaryCardProps) {
   return (
-    <Card
-      className="shadow-xl border"
-      style={{
-        borderColor: 'hsl(221 42% 17%)',
-        background: 'hsl(224 44% 9%)',
-      }}
-    >
-      <CardHeader
-        className="border-b pb-4"
-        style={{
-          borderColor: 'hsl(221 42% 17%)',
-          background: 'hsl(223 40% 11%)',
-        }}
-      >
+    <Card className="shadow-sm border border-border bg-card">
+      <CardHeader className="border-b border-border pb-4 bg-secondary rounded-t-xl">
         <div className="flex items-center gap-3">
           <div
             className="flex h-10 w-10 items-center justify-center rounded-full font-bold text-base flex-shrink-0"
-            style={{
-              background: 'linear-gradient(135deg, #c9a84c, #f0c040)',
-              color: '#0a0f1e',
-            }}
+            style={{ background: 'linear-gradient(135deg, #b8932a, #d4a832)', color: 'hsl(var(--primary-foreground))' }}
           >
             {account.holderName.charAt(0)}
           </div>
           <div>
-            <p className="font-bold text-foreground text-lg leading-none">
-              {account.holderName}
-            </p>
-            <p
-              className="text-xs text-muted-foreground mt-1 font-mono"
-              dir="ltr"
-            >
+            <p className="font-bold text-foreground text-lg leading-none">{account.holderName}</p>
+            <p className="text-xs text-muted-foreground mt-1 font-mono" dir="ltr">
               {account.accountNumber}
             </p>
           </div>
@@ -51,10 +31,7 @@ export function AccountSummaryCard({ account }: AccountSummaryCardProps) {
         <div className="flex items-end justify-between gap-4">
           <div>
             <p className="text-xs text-muted-foreground mb-1">الرصيد الحالي</p>
-            <p
-              className="text-3xl font-extrabold tabular-nums"
-              style={{ color: '#c9a84c' }}
-            >
+            <p className="text-3xl font-extrabold tabular-nums text-primary">
               {formatCurrency(account.balance, account.currency as Currency)}
             </p>
           </div>
