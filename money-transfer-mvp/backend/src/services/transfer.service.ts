@@ -82,6 +82,22 @@ export class TransferService {
       throw new AppError('حساب الوجهة غير موجود', 404, 'ACCOUNT_NOT_FOUND');
     }
 
+    if (fromAccount.currency !== currency) {
+      throw new AppError(
+        `عملة حساب المصدر هي ${fromAccount.currency}. لا يمكن إجراء تحويل بعملة ${currency}.`,
+        400,
+        'CURRENCY_MISMATCH'
+      );
+    }
+
+    if (toAccount.currency !== currency) {
+      throw new AppError(
+        `عملة حساب الوجهة هي ${toAccount.currency}. التحويل يجب أن يكون بنفس عملة الحسابين.`,
+        400,
+        'CURRENCY_MISMATCH'
+      );
+    }
+
     const commission = parseFloat((amount * COMMISSION_RATE).toFixed(2));
     const totalAmount = parseFloat((amount + commission).toFixed(2));
 
