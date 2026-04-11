@@ -1,5 +1,4 @@
-import Link from 'next/link';
-import { AccountsListSection } from '@/components/accounts/AccountsListSection';
+import { AccountsPageContent } from '@/components/accounts/AccountsPageContent';
 import { Account } from '@/types';
 import { prisma } from '@/lib/prisma';
 
@@ -31,19 +30,7 @@ export default async function AccountsPage() {
   return (
     <main className="min-h-screen bg-background">
       <div className="max-w-5xl mx-auto px-4 py-10">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-2xl font-extrabold text-foreground mb-1">الحسابات</h2>
-            <p className="text-muted-foreground text-sm">عرض جميع الحسابات ورصيدها الحالي</p>
-          </div>
-          <Link
-            href="/accounts/create"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors btn-gold"
-          >
-            + إنشاء حساب
-          </Link>
-        </div>
-        <AccountsListSection accounts={accounts} />
+        <AccountsPageContent accounts={accounts} />
       </div>
 
       <footer className="border-t border-border mt-16">
