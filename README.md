@@ -14,11 +14,13 @@ The MVP is fully deployed and operational. The codebase is structured for contin
 
 ## Features
 
+- **Home page navigation hub** — central entry point linking to all screens with navigation cards
 - **Transfer between accounts** — select source and destination account, enter amount and currency
 - **Commission calculation** — 2% commission applied automatically, deducted from source account
 - **Balance updates** — atomic database transaction ensures both accounts update together or not at all
+- **Manual account creation** — create real accounts from inside the app; new accounts appear immediately in transfers and the accounts list
 - **Accounts overview** — view all accounts with current balances at a glance
-- **Account statement** — per-account transaction history showing all incoming and outgoing transfers
+- **Account statement** — per-account transaction history with red/green directional coloring on amounts
 - **Multi-currency support** — SAR, USD, EUR, GBP, AED
 - **Arabic RTL UI** — fully right-to-left interface using Cairo/Tajawal fonts
 
@@ -29,12 +31,15 @@ The MVP is fully deployed and operational. The codebase is structured for contin
 ```
 Browser
   └─ Next.js App (Vercel)
-       ├─ Pages (React Server Components)
-       │    ├─ /transfer      → transfer form
-       │    ├─ /accounts      → accounts overview
-       │    └─ /accounts/[id] → account statement
+       ├─ Pages (React Server/Client Components)
+       │    ├─ /                   → navigation hub
+       │    ├─ /transfer           → transfer form
+       │    ├─ /accounts           → accounts overview
+       │    ├─ /accounts/create    → manual account creation
+       │    └─ /accounts/[id]      → account statement
        ├─ API Routes (Vercel Serverless Functions)
        │    ├─ GET  /api/accounts
+       │    ├─ POST /api/accounts
        │    ├─ GET  /api/accounts/[id]
        │    ├─ GET  /api/accounts/[id]/transactions
        │    ├─ POST /api/transfer
@@ -61,14 +66,15 @@ money-transfer-system/
 │   │   ├── src/
 │   │   │   ├── app/
 │   │   │   │   ├── layout.tsx
-│   │   │   │   ├── page.tsx       ← Redirects to /transfer
+│   │   │   │   ├── page.tsx              ← Home page navigation hub
 │   │   │   │   ├── transfer/
 │   │   │   │   │   └── page.tsx
 │   │   │   │   ├── accounts/
 │   │   │   │   │   ├── page.tsx
+│   │   │   │   │   ├── create/page.tsx   ← Manual account creation form
 │   │   │   │   │   └── [id]/page.tsx
 │   │   │   │   └── api/
-│   │   │   │       ├── accounts/route.ts
+│   │   │   │       ├── accounts/route.ts          ← GET + POST
 │   │   │   │       ├── accounts/[id]/route.ts
 │   │   │   │       ├── accounts/[id]/transactions/route.ts
 │   │   │   │       ├── transfer/route.ts
@@ -177,6 +183,43 @@ Creates a transfer. Validates balance, calculates commission, updates both accou
 | Same source and destination | 400 |
 | Account not found | 404 |
 | Insufficient balance | 400 |
+| Server error | 500 |
+
+### POST /api/accounts
+
+Creates a new account. Opening balance is set as the initial balance.
+
+**Request body:**
+```json
+{
+  "holderName": "أحمد محمد",
+  "accountNumber": "ACC-001",
+  "balance": 5000,
+  "currency": "SAR"
+}
+```
+
+**Success (201):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "cuid",
+    "accountNumber": "ACC-001",
+    "holderName": "أحمد محمد",
+    "balance": 5000.00,
+    "currency": "SAR",
+    "createdAt": "2026-04-11T00:00:00.000Z"
+  }
+}
+```
+
+**Errors:**
+
+| Condition | HTTP |
+|---|---|
+| Invalid / missing fields | 422 |
+| Duplicate accountNumber | 400 |
 | Server error | 500 |
 
 ### GET /api/transfer/[id]
@@ -288,11 +331,16 @@ Before pushing any change to `main`:
 
 ---
 
-## Future Improvements
+## Roadmap
 
+### Phase 3B (next)
+- **Extended account fields** — add mobile number and address to account creation and profile
+- **Excel import/export** — bulk import accounts from `.xlsx`, export full account list to Excel (SheetJS)
+
+### Future
 - **Authentication & authorization** — user login, role-based access (admin, viewer, operator)
-- **Transaction reporting** — export to PDF/CSV, date range filters, summary stats
-- **Admin dashboard** — manage accounts, view system-wide transfer volume
+- **Transaction reporting** — date range filters, summary stats
+- **Admin dashboard** — system-wide transfer volume and account management
 - **Notifications** — SMS or email confirmation on transfer completion
 - **Audit log** — track who performed which operation and when
 - **Multi-branch support** — account ownership by branch or region
