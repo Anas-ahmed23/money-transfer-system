@@ -33,16 +33,16 @@ export function AccountsTable({ accounts }: AccountsTableProps) {
               borderBottom: '1px solid hsl(221 42% 17%)',
             }}
           >
-            <th className="text-right px-4 py-3 font-semibold text-muted-foreground">
+            <th className="text-right px-4 py-3 font-semibold" style={{ color: 'rgba(255,255,255,0.65)' }}>
               اسم الحامل
             </th>
-            <th className="text-right px-4 py-3 font-semibold text-muted-foreground">
+            <th className="text-right px-4 py-3 font-semibold" style={{ color: 'rgba(255,255,255,0.65)' }}>
               رقم الحساب
             </th>
-            <th className="text-right px-4 py-3 font-semibold text-muted-foreground">
+            <th className="text-right px-4 py-3 font-semibold" style={{ color: 'rgba(255,255,255,0.65)' }}>
               الرصيد
             </th>
-            <th className="text-right px-4 py-3 font-semibold text-muted-foreground">
+            <th className="text-right px-4 py-3 font-semibold" style={{ color: 'rgba(255,255,255,0.65)' }}>
               العملة
             </th>
             <th className="px-4 py-3" />
