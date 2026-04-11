@@ -62,7 +62,8 @@ export function AccountsTable({ accounts }: AccountsTableProps) {
                 {account.holderName}
               </td>
               <td
-                className="px-4 py-3 font-mono text-sm text-muted-foreground"
+                className="px-4 py-3 font-mono text-sm"
+                style={{ color: 'rgba(255,255,255,0.75)' }}
                 dir="ltr"
               >
                 {account.accountNumber}
@@ -73,11 +74,17 @@ export function AccountsTable({ accounts }: AccountsTableProps) {
               >
                 {formatCurrency(account.balance, account.currency as Currency)}
               </td>
-              <td className="px-4 py-3 text-muted-foreground">
-                <span className="font-mono text-xs font-bold">
+              <td className="px-4 py-3">
+                <span
+                  className="font-mono text-xs font-bold"
+                  style={{ color: 'rgba(255,255,255,0.80)' }}
+                >
                   {account.currency}
                 </span>
-                <span className="text-xs mr-1">
+                <span
+                  className="text-xs mr-1"
+                  style={{ color: 'rgba(255,255,255,0.55)' }}
+                >
                   · {CURRENCY_LABELS[account.currency as Currency]}
                 </span>
               </td>
