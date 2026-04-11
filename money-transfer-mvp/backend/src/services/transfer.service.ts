@@ -87,7 +87,7 @@ export class TransferService {
 
     if (fromAccount.balance.toNumber() < totalAmount) {
       throw new AppError(
-        `الرصيد غير كافٍ. الرصيد المتاح: ${fromAccount.balance.toNumber().toLocaleString('ar-SA')} ${fromAccount.currency}`,
+        `الرصيد غير كافٍ. الرصيد المتاح: ${fromAccount.balance.toNumber().toLocaleString('en-US')} ${fromAccount.currency}`,
         400,
         'INSUFFICIENT_BALANCE'
       );

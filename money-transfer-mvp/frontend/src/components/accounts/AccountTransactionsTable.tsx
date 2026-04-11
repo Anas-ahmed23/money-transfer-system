@@ -69,7 +69,7 @@ function Badge({ style }: { style: BadgeStyleProps }) {
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleString('ar-SA', {
+  return new Date(iso).toLocaleString('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
