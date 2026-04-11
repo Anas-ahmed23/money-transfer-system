@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
         {
           success: false,
           error: {
-            message: `الرصيد غير كافٍ. الرصيد المتاح: ${fromAccount.balance.toNumber().toLocaleString('ar-SA')} ${fromAccount.currency}`,
+            message: `الرصيد غير كافٍ. الرصيد المتاح: ${fromAccount.balance.toNumber().toLocaleString('en-US')} ${fromAccount.currency}`,
           },
         },
         { status: 400 }
