@@ -188,7 +188,7 @@ export function AccountTransactionsTable({
                 </td>
                 <td
                   className="px-4 py-3 tabular-nums font-semibold whitespace-nowrap"
-                  style={{ color: tx.direction === 'outgoing' ? '#f87171' : '#4ade80' }}
+                  style={{ color: DIRECTION_STYLES[tx.direction].color }}
                 >
                   {tx.direction === 'outgoing' ? '−' : '+'}{formatCurrency(tx.amount, tx.currency as Currency)}
                 </td>
@@ -197,7 +197,7 @@ export function AccountTransactionsTable({
                 </td>
                 <td
                   className="px-4 py-3 tabular-nums font-semibold whitespace-nowrap"
-                  style={{ color: tx.direction === 'outgoing' ? '#f87171' : '#4ade80' }}
+                  style={{ color: DIRECTION_STYLES[tx.direction].color }}
                 >
                   {formatCurrency(tx.totalAmount, tx.currency as Currency)}
                 </td>
