@@ -28,7 +28,7 @@
 
     /* Muted / subtle */
     --muted: 220 14% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted-foreground: 215 16% 44%;
 
     /* Accent (same as primary) */
     --accent: 44 54% 45%;
@@ -63,7 +63,7 @@
   .btn-gold {
     background: linear-gradient(135deg, #b8932a 0%, #d4a832 60%, #b8932a 100%);
     background-size: 200% auto;
-    color: #fff;
+    color: hsl(var(--primary-foreground));
     transition: background-position 0.4s ease, box-shadow 0.2s ease;
   }
 
