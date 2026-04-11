@@ -9,13 +9,6 @@ import { SummaryCard } from './SummaryCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 interface TransferFormProps {
@@ -23,8 +16,6 @@ interface TransferFormProps {
 }
 
 type FormErrors = Partial<Record<keyof TransferFormValues, string>>;
-
-const CURRENCIES: Currency[] = ['SAR', 'USD', 'EUR', 'GBP', 'AED'];
 
 const INITIAL_VALUES: TransferFormValues = {
   fromAccountId: '',
@@ -39,6 +30,8 @@ export function TransferForm({ accounts }: TransferFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [fromSearch, setFromSearch] = useState('');
+  const [toSearch, setToSearch] = useState('');
 
   const fromAccount = useMemo(
     () => accounts.find((a) => a.id === values.fromAccountId) ?? null,
@@ -52,6 +45,29 @@ export function TransferForm({ accounts }: TransferFormProps) {
     const totalAmount = calculateTotal(amount, commission);
     return { amount, commission, totalAmount, currency: values.currency };
   }, [values.amount, values.currency]);
+
+  const filteredFromAccounts = useMemo(() => {
+    if (!fromSearch.trim()) return accounts;
+    const q = fromSearch.toLowerCase();
+    return accounts.filter(
+      (a) =>
+        a.holderName.toLowerCase().includes(q) ||
+        a.accountNumber.toLowerCase().includes(q)
+    );
+  }, [accounts, fromSearch]);
+
+  const filteredToAccounts = useMemo(() => {
+    const base = values.fromAccountId
+      ? accounts.filter((a) => a.id !== values.fromAccountId)
+      : accounts;
+    if (!toSearch.trim()) return base;
+    const q = toSearch.toLowerCase();
+    return base.filter(
+      (a) =>
+        a.holderName.toLowerCase().includes(q) ||
+        a.accountNumber.toLowerCase().includes(q)
+    );
+  }, [accounts, values.fromAccountId, toSearch]);
 
   const validate = useCallback((): FormErrors => {
     const errs: FormErrors = {};
@@ -67,6 +83,13 @@ export function TransferForm({ accounts }: TransferFormProps) {
       errs.toAccountId = 'لا يمكن التحويل إلى نفس الحساب';
     }
 
+    if (values.fromAccountId && values.toAccountId) {
+      const toAcct = accounts.find((a) => a.id === values.toAccountId);
+      if (fromAccount && toAcct && fromAccount.currency !== toAcct.currency) {
+        errs.toAccountId = `حساب الوجهة بعملة ${toAcct.currency} لا يتطابق مع عملة حساب المصدر (${fromAccount.currency}). التحويل يجب أن يكون بنفس العملة.`;
+      }
+    }
+
     const amount = parseFloat(values.amount);
     if (!values.amount || isNaN(amount)) {
       errs.amount = 'يرجى إدخال مبلغ صحيح';
@@ -80,18 +103,26 @@ export function TransferForm({ accounts }: TransferFormProps) {
     }
 
     return errs;
-  }, [values, fromAccount, summary]);
+  }, [values, fromAccount, summary, accounts]);
 
   const handleFieldChange = useCallback(
     (field: keyof TransferFormValues, value: string) => {
-      setValues((prev) => ({ ...prev, [field]: value }));
+      setValues((prev) => {
+        const next = { ...prev, [field]: value };
+        // Auto-set currency to match fromAccount currency when fromAccountId changes
+        if (field === 'fromAccountId' && value) {
+          const acct = accounts.find((a) => a.id === value);
+          if (acct) next.currency = acct.currency as Currency;
+        }
+        return next;
+      });
       if (errors[field]) {
         setErrors((prev) => ({ ...prev, [field]: undefined }));
       }
       setApiError(null);
       setSuccessMessage(null);
     },
-    [errors]
+    [errors, accounts]
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -120,6 +151,8 @@ export function TransferForm({ accounts }: TransferFormProps) {
       );
       setValues(INITIAL_VALUES);
       setErrors({});
+      setFromSearch('');
+      setToSearch('');
     } catch (err) {
       setApiError(err instanceof Error ? err.message : 'حدث خطأ أثناء تنفيذ التحويل');
     } finally {
@@ -129,22 +162,13 @@ export function TransferForm({ accounts }: TransferFormProps) {
 
   return (
     <form onSubmit={handleSubmit} noValidate>
-      <Card
-        className="shadow-2xl border"
-        style={{ borderColor: 'hsl(221 42% 17%)', background: 'hsl(224 44% 9%)' }}
-      >
+      <Card className="shadow-md border border-border bg-card">
         {/* Card Header */}
-        <CardHeader
-          className="border-b pb-5"
-          style={{ borderColor: 'hsl(221 42% 17%)', background: 'hsl(223 40% 11%)' }}
-        >
+        <CardHeader className="border-b border-border pb-5 bg-secondary rounded-t-xl">
           <div className="flex items-center gap-3">
             <div
               className="flex h-10 w-10 items-center justify-center rounded-full text-lg font-bold"
-              style={{
-                background: 'linear-gradient(135deg, #c9a84c, #f0c040)',
-                color: '#0a0f1e',
-              }}
+              style={{ background: 'linear-gradient(135deg, #b8932a, #d4a832)', color: 'hsl(var(--primary-foreground))' }}
             >
               ↗
             </div>
@@ -160,17 +184,9 @@ export function TransferForm({ accounts }: TransferFormProps) {
         <CardContent className="p-6 space-y-6">
           {/* Success Message */}
           {successMessage && (
-            <div
-              className="rounded-xl p-4 flex items-start gap-3"
-              style={{
-                background: 'rgba(201,168,76,0.1)',
-                border: '1px solid rgba(201,168,76,0.3)',
-              }}
-            >
-              <span style={{ color: '#f0c040', fontSize: '18px' }}>✓</span>
-              <p className="font-semibold text-sm" style={{ color: '#f0c040' }}>
-                {successMessage}
-              </p>
+            <div className="rounded-xl p-4 flex items-start gap-3 bg-primary/10 border border-primary/30">
+              <span className="text-primary text-lg">✓</span>
+              <p className="font-semibold text-sm text-primary">{successMessage}</p>
             </div>
           )}
 
@@ -181,24 +197,33 @@ export function TransferForm({ accounts }: TransferFormProps) {
             </div>
           )}
 
-          {/* From Account */}
-          <div>
+          {/* From Account Search + Select */}
+          <div className="space-y-2">
+            <Label className="text-sm font-semibold text-foreground">بحث في حسابات المصدر</Label>
+            <Input
+              type="text"
+              placeholder="ابحث بالاسم أو رقم الحساب..."
+              value={fromSearch}
+              onChange={(e) => setFromSearch(e.target.value)}
+              className="h-10"
+            />
             <AccountSelect
               label="من حساب"
-              accounts={accounts}
+              accounts={filteredFromAccounts}
               value={values.fromAccountId}
               onValueChange={(v) => handleFieldChange('fromAccountId', v)}
             />
             {errors.fromAccountId && (
-              <p className="mt-1.5 text-xs text-destructive font-medium">
-                {errors.fromAccountId}
-              </p>
+              <p className="mt-1.5 text-xs text-destructive font-medium">{errors.fromAccountId}</p>
             )}
             {fromAccount && (
               <p className="mt-1.5 text-xs text-muted-foreground">
                 الرصيد المتاح:{' '}
-                <span className="font-semibold" style={{ color: '#c9a84c' }}>
+                <span className="font-semibold text-primary">
                   {formatCurrency(fromAccount.balance, fromAccount.currency as Currency)}
+                </span>
+                <span className="mr-2 text-muted-foreground">
+                  · العملة: <span className="font-mono font-bold">{fromAccount.currency}</span>
                 </span>
               </p>
             )}
@@ -206,36 +231,39 @@ export function TransferForm({ accounts }: TransferFormProps) {
 
           {/* Transfer Direction Indicator */}
           <div className="flex items-center gap-3">
-            <div className="flex-1 h-px" style={{ background: 'hsl(221 42% 17%)' }} />
+            <div className="flex-1 h-px bg-border" />
             <div
               className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold flex-shrink-0"
-              style={{
-                background: 'linear-gradient(135deg, #c9a84c, #f0c040)',
-                color: '#0a0f1e',
-              }}
+              style={{ background: 'linear-gradient(135deg, #b8932a, #d4a832)', color: 'hsl(var(--primary-foreground))' }}
             >
               ↓
             </div>
-            <div className="flex-1 h-px" style={{ background: 'hsl(221 42% 17%)' }} />
+            <div className="flex-1 h-px bg-border" />
           </div>
 
-          {/* To Account */}
-          <div>
+          {/* To Account Search + Select */}
+          <div className="space-y-2">
+            <Label className="text-sm font-semibold text-foreground">بحث في حسابات الوجهة</Label>
+            <Input
+              type="text"
+              placeholder="ابحث بالاسم أو رقم الحساب..."
+              value={toSearch}
+              onChange={(e) => setToSearch(e.target.value)}
+              className="h-10"
+            />
             <AccountSelect
               label="إلى حساب"
-              accounts={accounts}
+              accounts={filteredToAccounts}
               value={values.toAccountId}
               excludeId={values.fromAccountId}
               onValueChange={(v) => handleFieldChange('toAccountId', v)}
             />
             {errors.toAccountId && (
-              <p className="mt-1.5 text-xs text-destructive font-medium">
-                {errors.toAccountId}
-              </p>
+              <p className="mt-1.5 text-xs text-destructive font-medium">{errors.toAccountId}</p>
             )}
           </div>
 
-          {/* Amount + Currency Row */}
+          {/* Amount + Currency (locked to fromAccount) */}
           <div className="grid grid-cols-3 gap-4">
             <div className="col-span-2 space-y-2">
               <Label className="text-sm font-semibold text-foreground">المبلغ</Label>
@@ -258,37 +286,22 @@ export function TransferForm({ accounts }: TransferFormProps) {
 
             <div className="space-y-2">
               <Label className="text-sm font-semibold text-foreground">العملة</Label>
-              <Select
-                value={values.currency}
-                onValueChange={(v) => handleFieldChange('currency', v)}
-              >
-                <SelectTrigger className="h-12">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CURRENCIES.map((c) => (
-                    <SelectItem key={c} value={c}>
-                      <span className="font-mono font-bold text-xs">{c}</span>
-                      <span className="text-xs text-muted-foreground mr-1">
-                        · {CURRENCY_LABELS[c]}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="h-12 flex items-center justify-center rounded-lg border border-border bg-muted px-3 text-sm font-mono font-bold text-foreground">
+                {values.currency}
+              </div>
+              {fromAccount ? (
+                <p className="text-xs text-muted-foreground text-center">
+                  {CURRENCY_LABELS[values.currency as Currency]}
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground text-center">اختر حساب المصدر أولاً</p>
+              )}
             </div>
           </div>
 
-          {/* Commission */}
+          {/* Commission Badge */}
           <div className="flex items-center gap-2">
-            <span
-              className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold"
-              style={{
-                background: 'rgba(201,168,76,0.12)',
-                border: '1px solid rgba(201,168,76,0.25)',
-                color: '#c9a84c',
-              }}
-            >
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-primary/10 border border-primary/20 text-primary">
               العمولة: 2٪
             </span>
             {summary && (
@@ -309,12 +322,7 @@ export function TransferForm({ accounts }: TransferFormProps) {
           >
             {isSubmitting ? (
               <span className="flex items-center justify-center gap-2">
-                <span
-                  className="inline-block animate-spin"
-                  style={{ fontSize: '16px' }}
-                >
-                  ⟳
-                </span>
+                <span className="inline-block animate-spin" style={{ fontSize: '16px' }}>⟳</span>
                 جاري التنفيذ...
               </span>
             ) : (
