@@ -84,6 +84,16 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, data }, { status: 201 });
   } catch (error) {
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      (error as { code?: string }).code === 'P2002'
+    ) {
+      return NextResponse.json(
+        { success: false, error: { message: 'رقم الحساب مستخدم بالفعل' } },
+        { status: 400 }
+      );
+    }
     console.error('Error creating account:', error);
     return NextResponse.json(
       { success: false, error: { message: 'فشل في إنشاء الحساب' } },
