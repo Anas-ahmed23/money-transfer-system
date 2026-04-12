@@ -4,9 +4,8 @@ import { useState, useCallback, useMemo } from 'react';
 import { Account, TransferFormValues, TransferSummary, Currency, CURRENCY_LABELS } from '@/types';
 import { calculateCommission, calculateTotal, formatCurrency } from '@/lib/utils';
 import { api } from '@/lib/api';
-import { AccountSelect } from './AccountSelect';
+import { AccountCombobox } from '@/components/accounts/AccountCombobox';
 import { SummaryCard } from './SummaryCard';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -30,11 +29,19 @@ export function TransferForm({ accounts }: TransferFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
-  const [fromSearch, setFromSearch] = useState('');
-  const [toSearch, setToSearch] = useState('');
 
   const fromAccount = useMemo(
     () => accounts.find((a) => a.id === values.fromAccountId) ?? null,
+    [accounts, values.fromAccountId]
+  );
+
+  const toAccount = useMemo(
+    () => accounts.find((a) => a.id === values.toAccountId) ?? null,
+    [accounts, values.toAccountId]
+  );
+
+  const toAccounts = useMemo(
+    () => (values.fromAccountId ? accounts.filter((a) => a.id !== values.fromAccountId) : accounts),
     [accounts, values.fromAccountId]
   );
 
@@ -45,29 +52,6 @@ export function TransferForm({ accounts }: TransferFormProps) {
     const totalAmount = calculateTotal(amount, commission);
     return { amount, commission, totalAmount, currency: values.currency };
   }, [values.amount, values.currency]);
-
-  const filteredFromAccounts = useMemo(() => {
-    if (!fromSearch.trim()) return accounts;
-    const q = fromSearch.toLowerCase();
-    return accounts.filter(
-      (a) =>
-        a.holderName.toLowerCase().includes(q) ||
-        a.accountNumber.toLowerCase().includes(q)
-    );
-  }, [accounts, fromSearch]);
-
-  const filteredToAccounts = useMemo(() => {
-    const base = values.fromAccountId
-      ? accounts.filter((a) => a.id !== values.fromAccountId)
-      : accounts;
-    if (!toSearch.trim()) return base;
-    const q = toSearch.toLowerCase();
-    return base.filter(
-      (a) =>
-        a.holderName.toLowerCase().includes(q) ||
-        a.accountNumber.toLowerCase().includes(q)
-    );
-  }, [accounts, values.fromAccountId, toSearch]);
 
   const validate = useCallback((): FormErrors => {
     const errs: FormErrors = {};
@@ -109,7 +93,6 @@ export function TransferForm({ accounts }: TransferFormProps) {
     (field: keyof TransferFormValues, value: string) => {
       setValues((prev) => {
         const next = { ...prev, [field]: value };
-        // Auto-set currency to match fromAccount currency when fromAccountId changes
         if (field === 'fromAccountId' && value) {
           const acct = accounts.find((a) => a.id === value);
           if (acct) next.currency = acct.currency as Currency;
@@ -151,8 +134,6 @@ export function TransferForm({ accounts }: TransferFormProps) {
       );
       setValues(INITIAL_VALUES);
       setErrors({});
-      setFromSearch('');
-      setToSearch('');
     } catch (err) {
       setApiError(err instanceof Error ? err.message : 'حدث خطأ أثناء تنفيذ التحويل');
     } finally {
@@ -197,27 +178,22 @@ export function TransferForm({ accounts }: TransferFormProps) {
             </div>
           )}
 
-          {/* From Account Search + Select */}
+          {/* From Account */}
           <div className="space-y-2">
-            <Label className="text-sm font-semibold text-foreground">بحث في حسابات المصدر</Label>
-            <Input
-              type="text"
-              placeholder="ابحث بالاسم أو رقم الحساب..."
-              value={fromSearch}
-              onChange={(e) => setFromSearch(e.target.value)}
-              className="h-10"
-            />
-            <AccountSelect
+            <AccountCombobox
+              accounts={accounts}
+              onSelect={(account) => handleFieldChange('fromAccountId', account.id)}
+              onClear={() => handleFieldChange('fromAccountId', '')}
+              selectedAccount={fromAccount}
               label="من حساب"
-              accounts={filteredFromAccounts}
-              value={values.fromAccountId}
-              onValueChange={(v) => handleFieldChange('fromAccountId', v)}
+              placeholder="ابحث باسم الحامل أو رقم الحساب..."
+              disabled={isSubmitting}
             />
             {errors.fromAccountId && (
-              <p className="mt-1.5 text-xs text-destructive font-medium">{errors.fromAccountId}</p>
+              <p className="text-xs text-destructive font-medium">{errors.fromAccountId}</p>
             )}
             {fromAccount && (
-              <p className="mt-1.5 text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 الرصيد المتاح:{' '}
                 <span className="font-semibold text-primary">
                   {formatCurrency(fromAccount.balance, fromAccount.currency as Currency)}
@@ -241,29 +217,23 @@ export function TransferForm({ accounts }: TransferFormProps) {
             <div className="flex-1 h-px bg-border" />
           </div>
 
-          {/* To Account Search + Select */}
+          {/* To Account */}
           <div className="space-y-2">
-            <Label className="text-sm font-semibold text-foreground">بحث في حسابات الوجهة</Label>
-            <Input
-              type="text"
-              placeholder="ابحث بالاسم أو رقم الحساب..."
-              value={toSearch}
-              onChange={(e) => setToSearch(e.target.value)}
-              className="h-10"
-            />
-            <AccountSelect
+            <AccountCombobox
+              accounts={toAccounts}
+              onSelect={(account) => handleFieldChange('toAccountId', account.id)}
+              onClear={() => handleFieldChange('toAccountId', '')}
+              selectedAccount={toAccount}
               label="إلى حساب"
-              accounts={filteredToAccounts}
-              value={values.toAccountId}
-              excludeId={values.fromAccountId}
-              onValueChange={(v) => handleFieldChange('toAccountId', v)}
+              placeholder="ابحث باسم الحامل أو رقم الحساب..."
+              disabled={isSubmitting}
             />
             {errors.toAccountId && (
-              <p className="mt-1.5 text-xs text-destructive font-medium">{errors.toAccountId}</p>
+              <p className="text-xs text-destructive font-medium">{errors.toAccountId}</p>
             )}
           </div>
 
-          {/* Amount + Currency (locked to fromAccount) */}
+          {/* Amount + Currency (locked to fromAccount currency) */}
           <div className="grid grid-cols-3 gap-4">
             <div className="col-span-2 space-y-2">
               <Label className="text-sm font-semibold text-foreground">المبلغ</Label>
