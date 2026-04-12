@@ -76,4 +76,81 @@
     opacity: 0.6;
     cursor: not-allowed;
   }
+
+  /* ── Hero page animations ── */
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-fade-up {
+    animation: fadeSlideUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .animate-fade-up-delay-1 { animation: fadeSlideUp 0.7s 0.1s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .animate-fade-up-delay-2 { animation: fadeSlideUp 0.7s 0.2s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .animate-fade-up-delay-3 { animation: fadeSlideUp 0.7s 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .animate-fade-up-delay-4 { animation: fadeSlideUp 0.7s 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .animate-fade-up-delay-5 { animation: fadeSlideUp 0.7s 0.65s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+  .animate-card-in {
+    animation: cardSlideIn 0.9s 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  /* Gradient border card */
+  .card-gradient-border {
+    background:
+      linear-gradient(#0E1422, #0E1422) padding-box,
+      linear-gradient(135deg, rgba(184, 147, 42, 0.45) 0%, transparent 50%, rgba(184, 147, 42, 0.2) 100%) border-box;
+    border: 1px solid transparent;
+  }
+
+  /* Hero background */
+  .hero-bg {
+    background:
+      radial-gradient(ellipse at 22% 65%, rgba(184, 147, 42, 0.13) 0%, transparent 52%),
+      radial-gradient(ellipse at 78% 15%, rgba(212, 168, 50, 0.07) 0%, transparent 40%),
+      #080D18;
+  }
+
+  /* Subtle grid overlay */
+  .grid-overlay {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
+  /* Gold text gradient */
+  .text-gold-gradient {
+    background: linear-gradient(135deg, #d4a832 0%, #f0c84a 40%, #b8932a 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+/* ── Keyframes ── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(2deg); }
+  50%       { transform: translateY(-14px) rotate(2deg); }
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cardSlideIn {
+  from { opacity: 0; transform: translateX(-32px) rotate(2deg); }
+  to   { opacity: 1; transform: translateX(0) rotate(2deg); }
+}
+
+@keyframes shimmer-line {
+  0%   { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+@keyframes pulse-ring {
+  0%   { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2); opacity: 0; }
 }
